@@ -1,6 +1,7 @@
+import java.util.Iterator;
 import java.util.Scanner;
 
-public class uf {
+public class uf implements Iterable{
 
     int codi;
     String nom;
@@ -49,5 +50,8 @@ public class uf {
     }
 
 
-
+    @Override
+    public Iterator iterator() {
+        return null;
+    }
 }

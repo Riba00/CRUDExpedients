@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class modul {
     int codi;
@@ -29,13 +30,11 @@ public class modul {
     }
 
     public void afegirUf (uf uf){
-
-
+        this.llistaUFs.add(uf);
     }
 
     public void treureUf (uf uf){
-
-
+        this.llistaUFs.remove(uf);
     }
 
 //    public double calcularNota(){

@@ -1,12 +1,18 @@
+
+import com.jakewharton.fliptables.FlipTableConverters;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main {
 
-    public static ArrayList<uf> llistaUF = new ArrayList<uf>();
+    public static ArrayList<uf> llistaUF = new ArrayList<>();
+    public static ArrayList<modul> llistaModuls = new ArrayList<>();
 
-
+    static String groc = "\u001B[33m";
+    static String normal = "\u001B[0m";
+    static String roig = "\u001B[31m";
     public static void main(String[] args) {
         menuInicial();
     }
@@ -35,11 +41,8 @@ public class Main {
             }
 
             switch (opcioInicial) {
-                case 1:
-                    menuUF();
-                    break;
-
-
+                case 1 -> menuUF();
+                case 2 -> menuModul();
             }
         } while (opcioInicial != 4);
     }
@@ -55,12 +58,13 @@ public class Main {
             System.out.println("2. Llistar");
             System.out.println("3. Modificar");
             System.out.println("4. Eliminar");
-            System.out.println("5. Sortir");
+            System.out.println("5. Guardar llista");
+            System.out.println("6. Sortir");
 
             try {
                 System.out.print("Opcio: ");
                 opcioUf = teclat.nextInt();
-                if (opcioUf < 1 || opcioUf > 5) {
+                if (opcioUf < 1 || opcioUf > 6) {
                     throw new InputMismatchException();
                 }
             } catch (InputMismatchException e) {
@@ -69,35 +73,23 @@ public class Main {
                 teclat.nextLine();
             }
             switch (opcioUf) {
-                case 1:
-                    crearUF();
-                    break;
-                case 2:
-                    llistarUFs();
-                    break;
-                case 3:
-                    modificarUF();
-                    break;
-                case 4:
-                    eliminarUF();
-                    break;
+                case 1 -> crearUF();
+                case 2 -> llistarUFs();
+                case 3 -> modificarUF();
+                case 4 -> eliminarUF();
+                case 5 -> guardarLlistaUF();
             }
-
-
-        } while (opcioUf != 5);
-
-
+        } while (opcioUf != 6);
     }
 
     public static void crearUF() {
         Scanner teclat = new Scanner(System.in);
 
         //VARIABLES
-        int codi = 0;
+        int codi = -1;
         String nom;
         int hores = 0;
         int nota = 0;
-
 
         System.out.println("CREAR UF");
         System.out.println("--------");
@@ -107,16 +99,15 @@ public class Main {
             try {
                 System.out.print("Codi: ");
                 codi = teclat.nextInt();
-                teclat.nextLine();
                 if (codi < 0) {
-                    System.out.println("Codi incorrecte");
+                    throw new InputMismatchException();
                 }
             } catch (java.util.InputMismatchException e) {
                 System.out.println("Codi incorrecte");
                 teclat.nextLine();
             }
-        } while (!validarCodiGenerat(codi));
-
+        } while (!validarCodiGeneratUF(codi));
+        teclat.nextLine();
         //NOM
         System.out.print("Nom: ");
         nom = teclat.nextLine();
@@ -153,27 +144,22 @@ public class Main {
 
         //CONSTRUCTOR UF
         uf ufCreada = new uf(codi, nom, hores, nota);
-        System.out.println("UF CREADA");
-        llistaUF.add(ufCreada);
 
+        llistaUF.add(ufCreada);
+        if (!Fitxer.isFitxer("uf.xml")) Fitxer.crearFitxerUF();
+
+
+        Fitxer.escriureFitxerUF(codi, nom, hores, nota);
+        System.out.println(groc+"UF CREADA"+normal);
+        System.out.println();
     }
 
     public static void llistarUFs() {
-        if (llistaUF.isEmpty()) {
-            System.out.println("No hi ha cap UF creada");
+        if (llistaUF.isEmpty() || !Fitxer.isFitxer("uf.xml")) {
+            System.out.println("!!! No hi ha cap UF creada !!!");
             System.out.println();
         } else {
-            for (int i = 0; i < llistaUF.size(); i++) {
-                System.out.println();
-                System.out.print("Codi---> ");
-                System.out.println(llistaUF.get(i).getCodi());
-                System.out.print("Nom----> ");
-                System.out.println(llistaUF.get(i).getNom());
-                System.out.print("Hores--> ");
-                System.out.println(llistaUF.get(i).getHores());
-                System.out.print("Nota --> ");
-                System.out.println(llistaUF.get(i).getNota());
-            }
+            System.out.println(FlipTableConverters.fromIterable(llistaUF, uf.class));
         }
     }
 
@@ -182,7 +168,7 @@ public class Main {
 
         int codiUfModificar = 0;
         int opcioModificar = 0;
-        uf ufModificar = null;
+        uf ufModificar;
 
 
         if (llistaUF.isEmpty()) {
@@ -301,9 +287,19 @@ public class Main {
                 if (codiUfEliminar == llistaUF.get(i).getCodi()) {
                     llistaUF.remove(i);
                     System.out.println("UF eliminada");
+                    break;
                 }
             }
         }
+    }
+
+    public static void guardarLlistaUF() {
+
+        Fitxer fitxer = new Fitxer();
+
+        Fitxer.crearFitxerUF();
+
+
     }
 
     public static boolean validarCodi(int codi) {
@@ -314,10 +310,10 @@ public class Main {
 
     }
 
-    public static boolean validarCodiGenerat(int codi) {
+    public static boolean validarCodiGeneratUF(int codi) {
         boolean valid = false;
 
-        ArrayList<Integer> codis = new ArrayList<Integer>();
+        ArrayList<Integer> codis = new ArrayList<>();
 
         if (llistaUF.isEmpty()) {
             valid = true;
@@ -331,6 +327,7 @@ public class Main {
                 valid = true;
             }
         }
+        if (codi < 0) valid = false;
         return valid;
     }
 
@@ -340,7 +337,6 @@ public class Main {
         if (hores > 0) valid = true;
 
         return valid;
-
     }
 
     public static boolean ufValidarNota(int nota) {
@@ -351,4 +347,118 @@ public class Main {
         return valid;
     }
 
+    public static void menuModul() {
+
+        Scanner teclat = new Scanner(System.in);
+
+        int opcioModul = 0;
+        do {
+            System.out.println("-----MODULS-----");
+            System.out.println("1. Crear");
+            System.out.println("2. Llistar");
+            System.out.println("3. Modificar");
+            System.out.println("4. Eliminar");
+            System.out.println("5. Sortir");
+            System.out.print("Opcio: ");
+
+            try {
+                opcioModul = teclat.nextInt();
+                if (opcioModul < 1 || opcioModul > 5) {
+                    throw new InputMismatchException();
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Opcio incorrecta");
+                System.out.println();
+                teclat.nextLine();
+            }
+            switch (opcioModul) {
+                case 1 -> crearModul();
+            }
+
+        } while (opcioModul != 5);
+
+    }
+
+    public static void crearModul() {
+        Scanner teclat = new Scanner(System.in);
+
+        int codi = 0;
+        String nom;
+        char respostaAfegirUF;
+
+        System.out.println("CREAR MODUL");
+        System.out.println("-----------");
+
+        //CODI
+        do {
+            try {
+                System.out.print("Codi: ");
+                codi = teclat.nextInt();
+                if (codi < 0) {
+                    throw new InputMismatchException();
+                }
+            } catch (java.util.InputMismatchException e) {
+                System.out.println("Codi incorrecte");
+                teclat.nextLine();
+            }
+        } while (!validarCodiGeneratModul(codi));
+        teclat.nextLine();
+        //NOM
+        System.out.print("Nom: ");
+        nom = teclat.nextLine();
+
+        modul modulCreat = new modul(codi, nom);
+        llistaModuls.add(modulCreat);
+
+        do {
+            System.out.println("Vols afegir ara UFs al modul?  Si (S)  No (N)");
+            System.out.print("Opcio: ");
+            respostaAfegirUF = teclat.nextLine().toUpperCase().charAt(0);
+        } while (!validarRespostaAgefirUF(respostaAfegirUF));
+        if (respostaAfegirUF == 'S') {
+
+            if (llistaUF.isEmpty()) {
+                System.out.println("No hi ha cap UF creada");
+                System.out.println();
+            } else {
+                for (uf uf : llistaUF) {
+                    System.out.println();
+                    System.out.print("Codi---> ");
+                    System.out.println(uf.getCodi());
+                    System.out.print("Nom----> ");
+                }
+                System.out.println("Quines UF vols afegir?");
+
+            }
+        }
+    }
+
+    public static boolean validarCodiGeneratModul(int codi) {
+        boolean valid = false;
+
+        ArrayList<Integer> codis = new ArrayList<>();
+
+        if (llistaModuls.isEmpty() && codi > 0) {
+            valid = true;
+        } else {
+            for (int i = 0; i < llistaModuls.size(); i++) {
+                codis.add(llistaModuls.get(i).getCodi());
+            }
+            if (codis.contains(codi)) {
+                System.out.println("Codi no disponible");
+            } else {
+                valid = true;
+            }
+        }
+        if (codi < 0) valid = false;
+        return valid;
+    }
+
+    public static boolean validarRespostaAgefirUF(char resposta) {
+        boolean valid = false;
+
+        if (resposta == 'S' || resposta == 'N') valid = true;
+
+        return valid;
+    }
 }
